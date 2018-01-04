@@ -9,9 +9,9 @@ class App extends Component {
     render() {
         return (
             <section className="app">
-                <Navbar brand='Bienvenido al curso React' right>
-                    <NavItem href='get-started.html'>Getting started</NavItem>
-                    <NavItem href='components.html'>Components</NavItem>
+                <Navbar className="teal lighten-2" brand='Bienvenido al curso React' right>
+                    <NavItem href='#'>Getting started</NavItem>
+                    <NavItem href='#'>Components</NavItem>
                 </Navbar>
             </section>
         );
