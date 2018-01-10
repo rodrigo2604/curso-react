@@ -1,0 +1,15 @@
+.app > h1{
+  text-align: center;
+}
+
+.app input{
+  color: white;
+  background-color: grey;
+  border-style: none;
+  padding: .2em;
+  box-shadow: 0 0 7px;
+}
+
+.app a:visited, a:focus{
+  color: #0C7D9D;
+}
