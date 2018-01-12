@@ -1,26 +1,15 @@
 import React, { Component } from 'react';
 import './App.css';
 
-const list = [
-  {
-    title: 'React',
-    url: 'https://facebook.github.io/react/',
-    author: 'Jordan Walke',
-    num_comments: 3,
-    points: 4,
-    objectID: 0,
-  },
-  {
-    title: 'Redux',
-    url: 'https://github.com/reactjs/redux',
-    author: 'Dan Abramov, Andrew Clark',
-    num_comments: 2,
-    points: 5,
-    objectID: 1,
-  },
-];
+const DEFAULT_QUERY = 'redux';
 
-const isSearched = query => item => !query || item.title.toLowerCase().includes(query.toLowerCase());
+const PATH_BASE = 'https://hn.algolia.com/api/v1';
+const PATH_SEARCH = '/search';
+const PARAM_SEARCH = 'query=';
+
+const isSearched = query => item => (
+  !query || item.title.toLowerCase().includes(query.toLowerCase())
+);
 
 class App extends Component {
 
@@ -30,20 +19,38 @@ class App extends Component {
 
     // Necesitamos interactividad para mutar el estado
     this.state = {
-      list,
-      query: '',
+      result: null,
+      searchTerm: DEFAULT_QUERY,
     };
-
+    this.setSearchTopStories = this.setSearchTopStories.bind(this);
+    this.fetchSearchTopStories = this.fetchSearchTopStories.bind(this);
     this.onSearchChange = this.onSearchChange.bind(this);
-    this.deleteItem = this.deleteItem.bind(this);
+    this.onDismiss = this.onDismiss.bind(this);
   }
 
-  // Está recibiendo como parámetro un evento sintáctico. No hay problema de cross browser
+  setSearchTopStories(result) {
+    this.setState({ result });
+  }
+
+  fetchSearchTopStories(searchTerm) {
+    fetch(`${PATH_BASE}${PATH_SEARCH}?${PARAM_SEARCH}${searchTerm}`)
+      .then(response => response.json())
+      .then(result => this.setSearchTopStories(result))
+      .catch(error => error);
+  }
+
+  componentDidMount() {
+    const { searchTerm } = this.state;
+    this.fetchSearchTopStories(searchTerm);
+  }
+
+  // Está recibiendo como parámetro un evento sintáctico.
+  // No hay problema de cross browser
   onSearchChange(event) {
-    this.setState({ query: event.target.value });
+    this.setState({ searchTerm: event.target.value });
   }
 
-  deleteItem(id, event) {
+  onDismiss(id, event) {
     console.log(event, event.target);
     this.setState((prevState) => ({
       list: prevState.list.filter(item => item.objectID !== id),
@@ -51,14 +58,16 @@ class App extends Component {
   }
 
   render() {
-    const { list, query } = this.state;
+    const { result, searchTerm } = this.state;
+    if (!result) { return null; }
+
     return (
       <section className="page">
         <section className="interactions">
-          <Search value={query} onChange={this.onSearchChange}>
+          <Search value={searchTerm} onChange={this.onSearchChange}>
             Search
           </Search>
-          <Table list={list} pattern={query} onClick={this.deleteItem} />
+          <Table list={result.hits} pattern={searchTerm} onClick={this.onDismiss} />
         </section>
       </section>
     );
@@ -73,6 +82,7 @@ const Search = ({ value, onChange, children }) => (
 
 const Table = ({ list, pattern, onClick }) => (
   <div className="table">
+    {console.log('Es la lista', list)}
     {list.filter(isSearched(pattern)).map(item =>
       <div key={item.objectID} className="table-row">
         <span style={{ width: '40%' }}>
@@ -87,8 +97,9 @@ const Table = ({ list, pattern, onClick }) => (
         <span style={{ width: '10%' }}>
           {item.points}
         </span>
-        <button style={{ width: '10%' }} onClick={(e) => onClick(item.objectID, e)}>
-          X
+        <button
+          style={{ width: '10%' }}
+          onClick={(e) => onClick(item.objectID, e)}>X
         </button>
       </div>
     )}
