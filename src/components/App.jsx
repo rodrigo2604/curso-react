@@ -43,7 +43,8 @@ class App extends Component {
     this.setState({ query: event.target.value });
   }
 
-  deleteItem(id) {
+  deleteItem(id, event) {
+    console.log(event, event.target);
     this.setState((prevState) => ({
       list: prevState.list.filter(item => item.objectID !== id),
     }));
@@ -86,7 +87,7 @@ const Table = ({ list, pattern, onClick }) => (
         <span style={{ width: '10%' }}>
           {item.points}
         </span>
-        <button style={{ width: '10%' }} onClick={() => onClick(item.objectID)}>
+        <button style={{ width: '10%' }} onClick={(e) => onClick(item.objectID, e)}>
           X
         </button>
       </div>
