@@ -35,11 +35,18 @@ class App extends Component {
     };
 
     this.onSearchChange = this.onSearchChange.bind(this);
+    this.deleteItem = this.deleteItem.bind(this);
   }
 
   // Está recibiendo como parámetro un evento sintáctico. No hay problema de cross browser
   onSearchChange(event) {
     this.setState({ query: event.target.value });
+  }
+
+  deleteItem(id) {
+    this.setState((prevState) => ({
+      list: prevState.list.filter(item => item.objectID !== id),
+    }));
   }
 
   render() {
@@ -50,7 +57,7 @@ class App extends Component {
           <Search value={query} onChange={this.onSearchChange}>
             Search
           </Search>
-          <Table list={list} pattern={query} />
+          <Table list={list} pattern={query} onClick={this.deleteItem} />
         </section>
       </section>
     );
@@ -63,7 +70,7 @@ const Search = ({ value, onChange, children }) => (
   </form>
 );
 
-const Table = ({ list, pattern }) => (
+const Table = ({ list, pattern, onClick }) => (
   <div className="table">
     {list.filter(isSearched(pattern)).map(item =>
       <div key={item.objectID} className="table-row">
@@ -73,12 +80,15 @@ const Table = ({ list, pattern }) => (
         <span style={{ width: '30%' }}>
           {item.author}
         </span>
-        <span style={{ width: '15%' }}>
+        <span style={{ width: '10%' }}>
           {item.num_comments}
         </span>
-        <span style={{ width: '15%' }}>
+        <span style={{ width: '10%' }}>
           {item.points}
         </span>
+        <button style={{ width: '10%' }} onClick={() => onClick(item.objectID)}>
+          X
+        </button>
       </div>
     )}
   </div>
