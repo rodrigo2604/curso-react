@@ -90,15 +90,20 @@ class App extends Component {
           </Search>
           {result && <Table list={result.hits} onClick={this.onDismiss} />}
           <section className="interactions">
-            {isLoading ?
-              <Loading /> :
-              <Button onClick={() => this.fetchSearchTopStories(searchTerm, page + 1)}>More</Button>
-            }
+            <ButtonWithLoading
+              isLoading={isLoading}
+              onClick={() => this.fetchSearchTopStories(searchTerm, page + 1)}>
+              More
+            </ButtonWithLoading>
           </section>
         </section>
       </section>
     );
   }
 }
+
+const withLoading = (Component) => ({ isLoading, ...props }) => isLoading ? <Loading /> : <Component {...props} />;
+
+const ButtonWithLoading = withLoading(Button);
 
 export default App;
