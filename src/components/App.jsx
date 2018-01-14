@@ -1,15 +1,20 @@
 import React, { Component } from 'react';
 import './App.css';
 
+import Button from './Button';
+import Search from './Search';
+import Table from './Table';
+import Loading from './Loading';
+
 const DEFAULT_QUERY = 'redux';
+const DEFAULT_PAGE = 0;
+const DEFAULT_HPP = 100;
 
 const PATH_BASE = 'https://hn.algolia.com/api/v1';
 const PATH_SEARCH = '/search';
 const PARAM_SEARCH = 'query=';
-
-const isSearched = query => item => (
-  !query || item.title.toLowerCase().includes(query.toLowerCase())
-);
+const PARAM_PAGE = 'page=';
+const PARAM_HPP = 'hitsPerPage=';
 
 class App extends Component {
 
@@ -21,27 +26,42 @@ class App extends Component {
     this.state = {
       result: null,
       searchTerm: DEFAULT_QUERY,
+      isLoading: false,
     };
     this.setSearchTopStories = this.setSearchTopStories.bind(this);
     this.fetchSearchTopStories = this.fetchSearchTopStories.bind(this);
     this.onSearchChange = this.onSearchChange.bind(this);
     this.onDismiss = this.onDismiss.bind(this);
+    this.onSearchSubmit = this.onSearchSubmit.bind(this);
   }
 
-  setSearchTopStories(result) {
-    this.setState({ result });
+  onSearchSubmit(event) {
+    const { searchTerm } = this.state;
+    this.fetchSearchTopStories(searchTerm, DEFAULT_PAGE);
+    event.preventDefault();
   }
 
-  fetchSearchTopStories(searchTerm) {
-    fetch(`${PATH_BASE}${PATH_SEARCH}?${PARAM_SEARCH}${searchTerm}`)
+  fetchSearchTopStories(searchTerm, page) {
+    this.setState({ isLoading: true });
+
+    fetch(`${PATH_BASE}${PATH_SEARCH}?${PARAM_SEARCH}${searchTerm}&${PARAM_PAGE}${page}&${PARAM_HPP}${DEFAULT_HPP}`)
       .then(response => response.json())
       .then(result => this.setSearchTopStories(result))
       .catch(error => error);
   }
 
+  setSearchTopStories(result) {
+    const { hits, page } = result;
+
+    const oldHits = page === 0 ? [] : this.state.result.hits;
+    const updateHits = [...oldHits, ...hits];
+
+    this.setState({ result: { hits: updateHits, page }, isLoading: false });
+  }
+
   componentDidMount() {
     const { searchTerm } = this.state;
-    this.fetchSearchTopStories(searchTerm);
+    this.fetchSearchTopStories(searchTerm, DEFAULT_PAGE);
   }
 
   // Está recibiendo como parámetro un evento sintáctico.
@@ -50,8 +70,7 @@ class App extends Component {
     this.setState({ searchTerm: event.target.value });
   }
 
-  onDismiss(id, event) {
-    console.log(event, event.target);
+  onDismiss(id) {
     const { result } = this.state;
     const updateHits = result.hits.filter(item => item.objectID !== id);
 
@@ -61,52 +80,25 @@ class App extends Component {
   }
 
   render() {
-    const { result, searchTerm } = this.state;
-    if (!result) { return null; }
-
+    const { result, searchTerm, isLoading } = this.state;
+    const page = (result && result.page) || 0;
     return (
       <section className="page">
         <section className="interactions">
-          <Search value={searchTerm} onChange={this.onSearchChange}>
+          <Search value={searchTerm} onChange={this.onSearchChange} onSubmit={this.onSearchSubmit}>
             Search
           </Search>
-          <Table list={result.hits} pattern={searchTerm} onClick={this.onDismiss} />
+          {result && <Table list={result.hits} onClick={this.onDismiss} />}
+          <section className="interactions">
+            {isLoading ?
+              <Loading /> :
+              <Button onClick={() => this.fetchSearchTopStories(searchTerm, page + 1)}>More</Button>
+            }
+          </section>
         </section>
       </section>
     );
   }
 }
-
-const Search = ({ value, onChange, children }) => (
-  <form>
-    {children} <input type="text" value={value} onChange={onChange} />
-  </form>
-);
-
-const Table = ({ list, pattern, onClick }) => (
-  <div className="table">
-    {console.log('Es la lista', list)}
-    {list.filter(isSearched(pattern)).map(item =>
-      <div key={item.objectID} className="table-row">
-        <span style={{ width: '40%' }}>
-          <a href={item.url}>{item.title}</a>
-        </span>
-        <span style={{ width: '30%' }}>
-          {item.author}
-        </span>
-        <span style={{ width: '10%' }}>
-          {item.num_comments}
-        </span>
-        <span style={{ width: '10%' }}>
-          {item.points}
-        </span>
-        <button
-          style={{ width: '10%' }}
-          onClick={(e) => onClick(item.objectID, e)}>X
-        </button>
-      </div>
-    )}
-  </div>
-);
 
 export default App;
