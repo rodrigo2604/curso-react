@@ -52,8 +52,11 @@ class App extends Component {
 
   onDismiss(id, event) {
     console.log(event, event.target);
+    const { result } = this.state;
+    const updateHits = result.hits.filter(item => item.objectID !== id);
+
     this.setState((prevState) => ({
-      list: prevState.list.filter(item => item.objectID !== id),
+      result: { ...prevState.result, hits: updateHits }
     }));
   }
 
