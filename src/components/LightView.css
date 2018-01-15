@@ -1,0 +1,17 @@
+.on {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background-color: yellow;
+}
+
+.off {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background-color: black;
+}
+
+button {
+  background-color: white;
+}
