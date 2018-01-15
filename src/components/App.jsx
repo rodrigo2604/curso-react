@@ -1,5 +1,5 @@
 import React from 'react';
-import { Switch, Router, Route, Link } from 'react-router-dom';
+import { Switch, Route, Link } from 'react-router-dom';
 import SearchView from './SearchView';
 import About from './About';
 
